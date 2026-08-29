@@ -45,6 +45,83 @@ namespace lio_pipeline
             EXPECT_EQ(imu.get_samples().size(), N_INIT_WINDOW_SAMPLES);
         }
 
+        TEST(ImuTest, InitializationSetsGravity)
+        {
+            Imu imu;
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
+            sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_TRUE(imu.get_imu_state().gravity.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
+        }
+
+        // TEST(ImuTest, InitializationSetsRotation)
+        // TEST(ImuTest, GyroMaxOverMaxStopsInitialization)
+        // TEST(ImuTest, AccelSdStopsInitialization)
+        // TEST(ImuTest, InitializationRetriesOnFailure)
+        // TEST(ImuTest, InitializationIncreasesRetryCountWhenFails)
+        TEST(ImuTest, InitializationOkWithZIsUp)
+        {
+            Imu imu;
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
+            sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_TRUE(imu.get_imu_state().gyro_bias.isApprox(Eigen::Vector3d(0.0, 0.0, 0.0)));
+            EXPECT_TRUE(imu.get_imu_state().accel_bias.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
+            EXPECT_TRUE(imu.get_imu_state().gravity.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
+            EXPECT_TRUE(imu.get_imu_state().R_wi.isApprox(Eigen::Matrix3d::Identity()));
+            EXPECT_EQ(imu.get_retries(), 0);
+        }
+
+        TEST(ImuTest, InitializationOkWithZIsDown)
+        {
+            Imu imu(0, 0, N_INIT_WINDOW_SAMPLES, false);
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
+            sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            Eigen::Matrix3d matrix = Eigen::Matrix3d::Identity();
+            matrix(2,2) = -1;
+            matrix(1,1) = -1;
+            EXPECT_TRUE(imu.get_imu_state().gyro_bias.isApprox(Eigen::Vector3d(0.0, 0.0, 0.0)));
+            EXPECT_TRUE(imu.get_imu_state().accel_bias.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
+            EXPECT_TRUE(imu.get_imu_state().gravity.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
+            EXPECT_TRUE(imu.get_imu_state().R_wi.isApprox(matrix));
+            EXPECT_EQ(imu.get_retries(), 0);
+        }
+
+        TEST(ImuTest, InitializationOkWithNonZeroGyro)
+        {
+            Imu imu(0.1, 0, N_INIT_WINDOW_SAMPLES, true);
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
+            sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_TRUE(imu.get_imu_state().gyro_bias.isApprox(sample.gyro));
+            EXPECT_TRUE(imu.get_imu_state().accel_bias.isApprox(sample.accel));
+            EXPECT_TRUE(imu.get_imu_state().gravity.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
+            Eigen::Matrix3d matrix = Eigen::Matrix3d::Identity();
+            EXPECT_TRUE(imu.get_imu_state().R_wi.isApprox(matrix));
+            EXPECT_EQ(imu.get_retries(), 0);
+        }
+
     }
 
 }

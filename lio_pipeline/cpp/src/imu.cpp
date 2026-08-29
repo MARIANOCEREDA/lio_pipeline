@@ -14,7 +14,7 @@ namespace lio_pipeline
 
         void Imu::add_sample(const ImuSample &sample)
         {
-            if (sample_count_ >= N_INIT_WINDOW_SAMPLES)
+            if (sample_count_ >= window_samples_)
             {
                 return;
             }
@@ -25,7 +25,13 @@ namespace lio_pipeline
 
         void Imu::compute_samples_means(Eigen::Vector3d &gyro_mean, Eigen::Vector3d &accel_mean)
         {
-            const double n_samples = static_cast<double>(sample_count_);
+            const double n_samples = static_cast<double>(samples_.size());
+            if (n_samples == 0.0)
+            {
+                gyro_mean.setZero();
+                accel_mean.setZero();
+                return;
+            }
             gyro_mean = Eigen::Vector3d::Zero();
             accel_mean = Eigen::Vector3d::Zero();
             for (const auto &sample : samples_)
@@ -53,7 +59,7 @@ namespace lio_pipeline
         {
             Eigen::Vector3d var;
             compute_accel_variance(accel_mean, var);
-            const double n_samples = static_cast<double>(sample_count_);
+            const double n_samples = static_cast<double>(samples_.size());
             for (int i = 0; i < 3; ++i)
             {
                 sd[i] = std::sqrt(var[i] / n_samples);
@@ -67,12 +73,10 @@ namespace lio_pipeline
                 return;
             }
 
-            if (sample_count_ < N_INIT_WINDOW_SAMPLES)
+            if (sample_count_ < window_samples_)
             {
                 return;
             }
-
-            const double n_samples = static_cast<double>(sample_count_);
 
             Eigen::Vector3d gyro_mean = Eigen::Vector3d::Zero();
             Eigen::Vector3d accel_mean = Eigen::Vector3d::Zero();

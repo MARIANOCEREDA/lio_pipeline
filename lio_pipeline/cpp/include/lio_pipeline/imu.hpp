@@ -26,10 +26,10 @@ namespace lio_pipeline
          */
         struct ImuState
         {
-            Eigen::Vector3d gyro_bias;  ///< Gyroscope bias (rad/s) per axis.
-            Eigen::Vector3d accel_bias; ///< Accelerometer bias (m/s²) per axis.
+            Eigen::Vector3d gyro_bias;      ///< Gyroscope bias (rad/s) per axis.
+            Eigen::Vector3d accel_bias;     ///< Accelerometer bias (m/s²) per axis.
             Eigen::Matrix3d R_wi;       ///< Rotation from IMU to world frame.
-            Eigen::Vector3d gravity;    ///< Gravity vector in world frame.
+            Eigen::Vector3d gravity; ///< Gravity vector in world frame.
         };
 
         /**
@@ -44,10 +44,16 @@ namespace lio_pipeline
              * @param max_accel_sd Maximum allowed accelerometer std dev during init.
              * @param window_samples Number of samples required for initialization.
              */
-            Imu(int max_gyro = 0, int max_accel_sd = 0, int window_samples = N_INIT_WINDOW_SAMPLES, bool z_is_up = false) : max_gyro_(max_gyro),
-                                                                                                                            max_accel_sd_(max_accel_sd),
-                                                                                                                            window_samples_(window_samples),
-                                                                                                                            z_is_up_(z_is_up) {}
+             Imu(double max_gyro = 0.0,
+                 double max_accel_sd = 0.0,
+                 int window_samples = N_INIT_WINDOW_SAMPLES,
+                 bool z_is_up = true) : max_gyro_(max_gyro),
+                                        max_accel_sd_(max_accel_sd),
+                                        window_samples_(window_samples),
+                                        z_is_up_(z_is_up)
+            {
+                imu_state_ = ImuState();
+            }
             ~Imu() {};
 
             /**
@@ -78,6 +84,12 @@ namespace lio_pipeline
              */
             std::vector<ImuSample> get_samples() const { return samples_; }
 
+            /**
+             * @brief Returns the number of failed initialization attempts.
+             * @return The retry count.
+             */
+            int get_retries() const { return retries_; }
+
         private:
             /**
              * @brief Computes the mean of the buffered gyro and accel samples.
@@ -100,13 +112,13 @@ namespace lio_pipeline
              */
             void compute_accel_sd(Eigen::Vector3d &accel_mean, Eigen::Vector3d &sd);
 
-            int max_gyro_;                   ///< Max allowed gyro norm during init.
-            int max_accel_sd_;               ///< Max allowed accel std dev during init.
+            double max_gyro_;                   ///< Max allowed gyro norm during init.
+            double max_accel_sd_;               ///< Max allowed accel std dev during init.
             int window_samples_;             ///< Samples needed to trigger init.
             std::vector<ImuSample> samples_; ///< Buffered IMU samples.
             int sample_count_ = 0;           ///< Number of buffered samples.
             bool initialized_ = false;       ///< Whether biases have been computed.
-            bool z_is_up_ = false;           ///< Whether the IMU z-axis is aligned with gravity.
+            bool z_is_up_ = true;            ///< Whether the IMU z-axis is aligned with gravity.
             ImuState imu_state_;             ///< Current IMU state.
             int retries_ = 0;                ///< Number of failed initialization attempts.
         };
