@@ -59,11 +59,93 @@ namespace lio_pipeline
             EXPECT_TRUE(imu.get_imu_state().gravity.isApprox(Eigen::Vector3d(0.0, 0.0, 9.8)));
         }
 
-        // TEST(ImuTest, InitializationSetsRotation)
-        // TEST(ImuTest, GyroMaxOverMaxStopsInitialization)
-        // TEST(ImuTest, AccelSdStopsInitialization)
-        // TEST(ImuTest, InitializationRetriesOnFailure)
-        // TEST(ImuTest, InitializationIncreasesRetryCountWhenFails)
+        TEST(ImuTest, InitializationSetsRotation)
+        {
+            Imu imu;
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
+            sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_TRUE(imu.get_imu_state().R_wi.isApprox(Eigen::Matrix3d::Identity()));
+        }
+
+        TEST(ImuTest, GyroMaxOverMaxStopsInitialization)
+        {
+            Imu imu(0.05, 0, N_INIT_WINDOW_SAMPLES, true);
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                sample.accel = (i % 2 == 0) ? Eigen::Vector3d(0.0, 0.0, 9.8)
+                                             : Eigen::Vector3d(0.0, 0.0, 10.8);
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_EQ(imu.get_retries(), 1);
+            EXPECT_TRUE(imu.get_samples().empty());
+        }
+
+        TEST(ImuTest, AccelSdStopsInitialization)
+        {
+            Imu imu(0, 0, N_INIT_WINDOW_SAMPLES, true);
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                sample.accel = (i % 2 == 0) ? Eigen::Vector3d(0.0, 0.0, 9.8)
+                                             : Eigen::Vector3d(0.0, 0.0, 10.8);
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_EQ(imu.get_retries(), 1);
+            EXPECT_TRUE(imu.get_samples().empty());
+        }
+
+        TEST(ImuTest, InitializationRetriesOnFailure)
+        {
+            Imu imu(0.05, 0, N_INIT_WINDOW_SAMPLES, true);
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                sample.accel = (i % 2 == 0) ? Eigen::Vector3d(0.0, 0.0, 9.8)
+                                             : Eigen::Vector3d(0.0, 0.0, 10.8);
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_EQ(imu.get_retries(), 1);
+            EXPECT_TRUE(imu.get_samples().empty());
+        }
+
+        TEST(ImuTest, InitializationIncreasesRetryCountWhenFails)
+        {
+            Imu imu(0.05, 0, N_INIT_WINDOW_SAMPLES, true);
+            ImuSample sample;
+            sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                sample.accel = (i % 2 == 0) ? Eigen::Vector3d(0.0, 0.0, 9.8)
+                                             : Eigen::Vector3d(0.0, 0.0, 10.8);
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_EQ(imu.get_retries(), 1);
+            imu.reset();
+            for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
+            {
+                sample.accel = (i % 2 == 0) ? Eigen::Vector3d(0.0, 0.0, 9.8)
+                                             : Eigen::Vector3d(0.0, 0.0, 10.8);
+                imu.add_sample(sample);
+            }
+            imu.initialize();
+            EXPECT_EQ(imu.get_retries(), 2);
+            EXPECT_TRUE(imu.get_samples().empty());
+        }
+
         TEST(ImuTest, InitializationOkWithZIsUp)
         {
             Imu imu;
