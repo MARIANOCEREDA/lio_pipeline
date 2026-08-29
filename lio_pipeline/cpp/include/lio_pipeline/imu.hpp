@@ -44,9 +44,10 @@ namespace lio_pipeline
              * @param max_accel_sd Maximum allowed accelerometer std dev during init.
              * @param window_samples Number of samples required for initialization.
              */
-            Imu(int max_gyro = 0, int max_accel_sd = 0, int window_samples = N_INIT_WINDOW_SAMPLES) : max_gyro_(max_gyro),
-                                                                                                      max_accel_sd_(max_accel_sd),
-                                                                                                      window_samples_(window_samples) {}
+            Imu(int max_gyro = 0, int max_accel_sd = 0, int window_samples = N_INIT_WINDOW_SAMPLES, bool z_is_up = false) : max_gyro_(max_gyro),
+                                                                                                                            max_accel_sd_(max_accel_sd),
+                                                                                                                            window_samples_(window_samples),
+                                                                                                                            z_is_up_(z_is_up) {}
             ~Imu() {};
 
             /**
@@ -66,16 +67,16 @@ namespace lio_pipeline
             void reset();
 
             /**
-             * @brief Checks whether the IMU z-axis is aligned with gravity.
-             * @return True if the z-axis is up, false otherwise.
-             */
-            bool z_is_up();
-
-            /**
              * @brief Returns the current IMU state (biases, pose, gravity).
              * @return The stored ImuState.
              */
             ImuState get_imu_state() const { return imu_state_; }
+
+            /**
+             * @brief Returns the buffered IMU samples.
+             * @return A vector of stored ImuSample objects.
+             */
+            std::vector<ImuSample> get_samples() const { return samples_; }
 
         private:
             /**
@@ -105,6 +106,7 @@ namespace lio_pipeline
             std::vector<ImuSample> samples_; ///< Buffered IMU samples.
             int sample_count_ = 0;           ///< Number of buffered samples.
             bool initialized_ = false;       ///< Whether biases have been computed.
+            bool z_is_up_ = false;           ///< Whether the IMU z-axis is aligned with gravity.
             ImuState imu_state_;             ///< Current IMU state.
             int retries_ = 0;                ///< Number of failed initialization attempts.
         };

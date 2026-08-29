@@ -12,18 +12,8 @@ namespace lio_pipeline
             initialized_ = false;
         }
 
-        bool Imu::z_is_up()
-        {
-            return initialized_ && imu_state_.accel_bias.z() > 0;
-        }
-
         void Imu::add_sample(const ImuSample &sample)
         {
-            if (initialized_)
-            {
-                return;
-            }
-
             if (sample_count_ >= N_INIT_WINDOW_SAMPLES)
             {
                 return;
@@ -72,7 +62,6 @@ namespace lio_pipeline
 
         void Imu::initialize()
         {
-
             if (initialized_)
             {
                 return;
@@ -119,7 +108,7 @@ namespace lio_pipeline
             Eigen::Vector3d gravity_dir = imu_state_.gravity.normalized();
             Eigen::Vector3d global_z_axis = Eigen::Vector3d::UnitZ();
             Eigen::Quaterniond q;
-            int gravity_sign = z_is_up() ? 1 : -1;
+            int gravity_sign = z_is_up_ ? 1 : -1;
             q = Eigen::Quaterniond::FromTwoVectors(gravity_sign * gravity_dir, global_z_axis);
             imu_state_.R_wi = Eigen::Matrix3d(q.normalized());
 
