@@ -52,9 +52,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ros-$ROS_DISTRO-rviz2 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/dev/ws
+WORKDIR /ros2_ws
 
-COPY . /home/dev/ws
+COPY . /ros2_ws
 
 RUN mkdir -p /tmp/ws/src \
     && find ./ -name "package.xml" | xargs cp --parents -t /tmp/ws/src \
@@ -80,13 +80,15 @@ RUN addgroup --gid $GID $GROUP \
     && echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
     && echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /home/$USER/.bashrc \
     && echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> /home/$USER/.bashrc \
-    && echo "export QT_X11_NO_MITSHM=1" >> /home/$USER/.bashrc \
-    && echo "export PATH=\$HOME/.opencode/bin:\$PATH" >> /home/$USER/.bashrc
+    && echo "export QT_X11_NO_MITSHM=1" >> /home/$USER/.bashrc
 
 USER $USER
 
 ENV HOME=/home/$USER
 ENV WS_DIR=$HOME/ws
+
+RUN mkdir -p $HOME/.cache
+RUN mkdir -p $HOME/.config
 
 WORKDIR $WS_DIR
 
