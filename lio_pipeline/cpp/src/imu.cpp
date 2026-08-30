@@ -12,7 +12,7 @@ namespace lio_pipeline
             initialized_ = false;
         }
 
-        void Imu::add_sample(const ImuSample &sample)
+        void Imu::add_sample(const Sample &sample)
         {
             if (sample_count_ >= window_samples_)
             {

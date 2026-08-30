@@ -5,12 +5,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED)
 
-set(SOURCES src/imu.cpp)
-set(HEADERS include/lio_pipeline/imu.hpp)
+set(SOURCES 
+    src/imu.cpp
+    src/synchronizer.cpp)
+set(HEADERS 
+    include/lio_pipeline/imu.hpp
+    include/lio_pipeline/synchronizer.hpp)
 
 add_library(lio_pipeline_cpp SHARED ${SOURCES} ${HEADERS})
-target_link_libraries(lio_pipeline_cpp Eigen3::Eigen)
+target_link_libraries(lio_pipeline_cpp Eigen3::Eigen ${PCL_LIBRARIES})
 target_include_directories(lio_pipeline_cpp PUBLIC include)
 
 if(BUILD_TESTING)

@@ -13,7 +13,7 @@ namespace lio_pipeline
         TEST(ImuTest, ResetClearsSamples)
         {
             Imu imu;
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(1.0, 2.0, 3.0);
             sample.accel = Eigen::Vector3d(4.0, 5.0, 6.0);
             imu.add_sample(sample);
@@ -24,7 +24,7 @@ namespace lio_pipeline
         TEST(ImuTest, AddSampleIncreasesSize)
         {
             Imu imu;
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(1.0, 2.0, 3.0);
             sample.accel = Eigen::Vector3d(4.0, 5.0, 6.0);
             imu.add_sample(sample);
@@ -34,7 +34,7 @@ namespace lio_pipeline
         TEST(ImuTest, SampleNotAddedWhenFull)
         {
             Imu imu;
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(1.0, 2.0, 3.0);
             sample.accel = Eigen::Vector3d(4.0, 5.0, 6.0);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
@@ -48,7 +48,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationSetsGravity)
         {
             Imu imu;
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
             sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
@@ -62,7 +62,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationSetsRotation)
         {
             Imu imu;
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
             sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
@@ -76,7 +76,7 @@ namespace lio_pipeline
         TEST(ImuTest, GyroMaxOverMaxStopsInitialization)
         {
             Imu imu(0.05, 0, N_INIT_WINDOW_SAMPLES, true);
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
             {
@@ -92,7 +92,7 @@ namespace lio_pipeline
         TEST(ImuTest, AccelSdStopsInitialization)
         {
             Imu imu(0, 0, N_INIT_WINDOW_SAMPLES, true);
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
             {
@@ -108,7 +108,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationRetriesOnFailure)
         {
             Imu imu(0.05, 0, N_INIT_WINDOW_SAMPLES, true);
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
             {
@@ -124,7 +124,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationIncreasesRetryCountWhenFails)
         {
             Imu imu(0.05, 0, N_INIT_WINDOW_SAMPLES, true);
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
             {
@@ -149,7 +149,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationOkWithZIsUp)
         {
             Imu imu;
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
             sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
@@ -167,7 +167,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationOkWithZIsDown)
         {
             Imu imu(0, 0, N_INIT_WINDOW_SAMPLES, false);
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.0, 0.0);
             sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
@@ -188,7 +188,7 @@ namespace lio_pipeline
         TEST(ImuTest, InitializationOkWithNonZeroGyro)
         {
             Imu imu(0.1, 0, N_INIT_WINDOW_SAMPLES, true);
-            ImuSample sample;
+            Sample sample;
             sample.gyro = Eigen::Vector3d(0.0, 0.1, 0.0);
             sample.accel = Eigen::Vector3d(0.0, 0.0, 9.8);
             for (int i = 0; i < N_INIT_WINDOW_SAMPLES; ++i)
