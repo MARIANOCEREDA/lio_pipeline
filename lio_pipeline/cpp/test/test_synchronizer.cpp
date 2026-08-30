@@ -198,5 +198,69 @@ namespace lio_pipeline
             MeasPair meas_pair;
             EXPECT_FALSE(sync.get_next_sync_meas(meas_pair));
         }
+
+        TEST(SynchronizerTest, GetNextSyncMeasOkVerifyImuPruning)
+        {
+            Synchronizer sync;
+            // IMU samples at 0.0, 0.05, 0.1, 0.15, 0.2
+            // lidar at 0.0, scan_guard = 0.11, lidar_time_end = 0.11
+            // meas_pair.imu_samples collects up to first t >= lidar_time_end (0.15)
+            // while loop removes front elements whose successor is <= lidar_time_end
+            // Remaining in deque: [0.1, 0.15, 0.2]
+            sync.push_imu_sample(makeDefaultImuSample(0.0));
+            sync.push_imu_sample(makeDefaultImuSample(0.05));
+            sync.push_imu_sample(makeDefaultImuSample(0.1));
+            sync.push_imu_sample(makeDefaultImuSample(0.15));
+            sync.push_imu_sample(makeDefaultImuSample(0.2));
+            sync.push_lidar_sample(makeDefaultLidarSample(0.0));
+
+            MeasPair meas_pair;
+            EXPECT_TRUE(sync.get_next_sync_meas(meas_pair));
+            EXPECT_EQ(meas_pair.lidar_sample.t, 0.0);
+            EXPECT_EQ(meas_pair.imu_samples.size(), 4); // 0.0, 0.05, 0.1, 0.15
+            EXPECT_EQ(sync.get_imu_count(), 3); // 0.1, 0.15, 0.2 remain in deque
+        }
+
+        TEST(SynchronizerTest, GetNextSyncMeasBackEqualToEndTime)
+        {
+            // Boundary: imu_samples_.back().t == lidar_time_end should NOT
+            // trigger the "not enough IMU" branch (condition is < not <=)
+            Synchronizer sync;
+            // lidar_time = 0.0, scan_guard = 0.11, lidar_time_end = 0.11
+            // Last IMU exactly at 0.11 → should succeed
+            sync.push_imu_sample(makeDefaultImuSample(0.0));
+            sync.push_imu_sample(makeDefaultImuSample(0.11));
+            sync.push_lidar_sample(makeDefaultLidarSample(0.0));
+
+            MeasPair meas_pair;
+            EXPECT_TRUE(sync.get_next_sync_meas(meas_pair));
+            EXPECT_EQ(meas_pair.lidar_sample.t, 0.0);
+            EXPECT_EQ(meas_pair.imu_samples.size(), 2);
+        }
+
+        TEST(SynchronizerTest, GetNextSyncMeasMultipleCalls)
+        {
+            Synchronizer sync;
+            double delta_t = 0.1;
+            for (int i = 0; i < 3; ++i)
+            {
+                double t = delta_t * i;
+                sync.push_lidar_sample(makeDefaultLidarSample(t));
+                // IMU covering [t, t + scan_guard]
+                sync.push_imu_sample(makeDefaultImuSample(t));
+                sync.push_imu_sample(makeDefaultImuSample(t + delta_t));
+                sync.push_imu_sample(makeDefaultImuSample(t + 2 * delta_t));
+            }
+
+            for (int i = 0; i < 3; ++i)
+            {
+                MeasPair meas_pair;
+                EXPECT_TRUE(sync.get_next_sync_meas(meas_pair));
+                EXPECT_EQ(meas_pair.lidar_sample.t, delta_t * i);
+            }
+
+            MeasPair meas_pair;
+            EXPECT_FALSE(sync.get_next_sync_meas(meas_pair));
+        }
     }
 }
