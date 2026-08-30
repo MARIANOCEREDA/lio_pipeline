@@ -4,12 +4,6 @@ namespace lio_pipeline
 {
     namespace synchronizer
     {
-        Synchronizer::Synchronizer()
-        {
-            last_imu_time_ = -1.0;
-            last_lidar_time_ = -1.0;
-        }
-
         Synchronizer::~Synchronizer()
         {
             reset();

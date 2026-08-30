@@ -6,8 +6,8 @@ build-cpp:
 
 build-cpp-test:
 	cmake -S lio_pipeline/cpp -B lio_pipeline/cpp/build -DBUILD_TESTING=ON && \
-	cmake --build lio_pipeline/cpp/build --target imu_test && \
-	./lio_pipeline/cpp/build/imu_test
+	cmake --build lio_pipeline/cpp/build --target lio_pipeline_cpp_test && \
+			./lio_pipeline/cpp/build/lio_pipeline_cpp_test
 
 clean:
 	rm -rf lio_pipeline/cpp/build
