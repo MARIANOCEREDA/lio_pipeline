@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lio_pipeline/imu.hpp"
+#include "lio_pipeline_cpp/imu.hpp"
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 #include <deque>

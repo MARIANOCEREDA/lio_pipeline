@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "lio_pipeline/synchronizer.hpp"
+#include "lio_pipeline_cpp/synchronizer.hpp"
 #include <Eigen/Dense>
 
 #include <iostream>

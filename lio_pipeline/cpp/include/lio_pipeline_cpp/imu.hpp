@@ -60,8 +60,9 @@ namespace lio_pipeline
             /**
              * @brief Buffers a sample until initialization completes.
              * @param sample IMU measurement to store.
+             * @return True if the sample was successfully added, false otherwise.
              */
-            void add_sample(const Sample &sample);
+            bool add_sample(const Sample &sample);
 
             /**
              * @brief Computes biases from the buffered samples if enough were collected.
@@ -90,6 +91,12 @@ namespace lio_pipeline
              * @return The retry count.
              */
             int get_retries() const { return retries_; }
+
+            /**
+             * @brief Checks if the IMU has been initialized.
+             * @return True if initialized, false otherwise.
+             */
+            bool is_initialized() const { return initialized_; }
 
         private:
             /**

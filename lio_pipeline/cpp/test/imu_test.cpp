@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "lio_pipeline/imu.hpp"
+#include "lio_pipeline_cpp/imu.hpp"
 
 #include <vector>
 #include <array>

@@ -1,4 +1,4 @@
-#include "lio_pipeline/imu.hpp"
+#include "lio_pipeline_cpp/imu.hpp"
 
 namespace lio_pipeline
 {
@@ -12,15 +12,21 @@ namespace lio_pipeline
             initialized_ = false;
         }
 
-        void Imu::add_sample(const Sample &sample)
+        bool Imu::add_sample(const Sample &sample)
         {
+            if (initialized_)
+            {
+                return true;
+            }
+
             if (sample_count_ >= window_samples_)
             {
-                return;
+                return false;
             }
 
             samples_.push_back(sample);
             sample_count_++;
+            return true;
         }
 
         void Imu::compute_samples_means(Eigen::Vector3d &gyro_mean, Eigen::Vector3d &accel_mean)
@@ -96,8 +102,8 @@ namespace lio_pipeline
             // 3. Compute standard deviation of accel
             compute_accel_sd(accel_mean, sd);
 
-            // 4. Check if gyro and accel meet initialization criteria
-            if (gyro_max > max_gyro_ && sd.maxCoeff() > max_accel_sd_)
+            // 4. Check if gyro or accel meet initialization criteria
+            if (gyro_max > max_gyro_ || sd.maxCoeff() > max_accel_sd_)
             {
                 ++retries_;
                 samples_.clear();

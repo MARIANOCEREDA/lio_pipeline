@@ -1,4 +1,4 @@
-#include "lio_pipeline/synchronizer.hpp"
+#include "lio_pipeline_cpp/synchronizer.hpp"
 
 namespace lio_pipeline
 {
